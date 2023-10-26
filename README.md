@@ -1,1 +1,1 @@
-# FinanceStream
+# FintechStream
