@@ -1,6 +1,9 @@
 package kafka
 
-import "github.com/segmentio/kafka-go"
+import (
+	"context"
+	"github.com/segmentio/kafka-go"
+)
 
 type KafkaProducer struct {
 	Writer *kafka.Writer
@@ -13,4 +16,12 @@ func NewKafkaProducer(brokerAddress, topic string) (*KafkaProducer, error) {
 	})
 
 	return &KafkaProducer{Writer: w}, nil
+}
+
+func (kp *KafkaProducer) PublishData(data []byte) error {
+	message := kafka.Message{
+		Value: data,
+	}
+
+	return kp.Writer.WriteMessages(context.Background(), message)
 }
