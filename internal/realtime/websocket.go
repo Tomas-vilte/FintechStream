@@ -32,3 +32,7 @@ func (ws *BinanceWebSocket) SubscribeToChannel(onDataReceived func([]byte)) {
 		}
 	}()
 }
+
+func (ws *BinanceWebSocket) Close() {
+	ws.Connection.Close()
+}
