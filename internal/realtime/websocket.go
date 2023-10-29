@@ -27,7 +27,7 @@ func NewBinanceWebSocket(channels []config.ChannelConfig) (*BinanceWebSocket, er
 
 	return &BinanceWebSocket{Connection: conn}, nil
 }
-func (ws *BinanceWebSocket) SubscribeToChannel(onDataReceived func([]byte, string)) {
+func (ws *BinanceWebSocket) SubscribeToChannel(onDataReceived func([]byte)) {
 	go func() {
 		for {
 			_, msg, err := ws.Connection.ReadMessage()
@@ -36,11 +36,8 @@ func (ws *BinanceWebSocket) SubscribeToChannel(onDataReceived func([]byte, strin
 				return
 			}
 
-			// Identificar el canal (stream) del mensaje
-			stream := "" // Extraer el canal de msg (implementación depende de la estructura del mensaje)
-
 			// Llamar a la función onDataReceived con el mensaje y el canal
-			onDataReceived(msg, stream)
+			onDataReceived(msg)
 		}
 	}()
 }
