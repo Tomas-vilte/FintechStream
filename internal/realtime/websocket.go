@@ -1,6 +1,7 @@
 package realtime
 
 import (
+	"github.com/Tomas-vilte/FinanceStream/internal/config"
 	"github.com/gorilla/websocket"
 	"log"
 )
@@ -9,8 +10,14 @@ type BinanceWebSocket struct {
 	Connection *websocket.Conn
 }
 
-func NewBinanceWebSocket(symbol, channel string) (*BinanceWebSocket, error) {
-	url := "wss://stream.binance.us:9443/stream?streams=" + symbol + "@" + channel
+func NewBinanceWebSocket(symbol, channels []config.ChannelConfig) (*BinanceWebSocket, error) {
+	url := "wss://stream.binance.us:9443/stream?streams="
+	for i, channel := range channels {
+		if i > 0 {
+			url += "/"
+		}
+		url += channel.Symbol + "@" + channel.Channel
+	}
 
 	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
