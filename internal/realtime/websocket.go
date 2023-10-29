@@ -1,6 +1,7 @@
 package realtime
 
 import (
+	"github.com/Tomas-vilte/FinanceStream/internal/config"
 	"github.com/gorilla/websocket"
 	"log"
 )
@@ -9,8 +10,14 @@ type BinanceWebSocket struct {
 	Connection *websocket.Conn
 }
 
-func NewBinanceWebSocket(symbol, channel string) (*BinanceWebSocket, error) {
-	url := "wss://stream.binance.us:9443/stream?streams=" + symbol + "@" + channel
+func NewBinanceWebSocket(channels []config.ChannelConfig) (*BinanceWebSocket, error) {
+	url := "wss://stream.binance.us:9443/stream?streams="
+	for i, channel := range channels {
+		if i > 0 {
+			url += "/"
+		}
+		url += channel.Symbol + "@" + channel.Channel
+	}
 
 	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
@@ -20,7 +27,7 @@ func NewBinanceWebSocket(symbol, channel string) (*BinanceWebSocket, error) {
 
 	return &BinanceWebSocket{Connection: conn}, nil
 }
-func (ws *BinanceWebSocket) SubscribeToChannel(onDataReceived func([]byte)) {
+func (ws *BinanceWebSocket) SubscribeToChannel(onDataReceived func([]byte, string)) {
 	go func() {
 		for {
 			_, msg, err := ws.Connection.ReadMessage()
@@ -28,7 +35,12 @@ func (ws *BinanceWebSocket) SubscribeToChannel(onDataReceived func([]byte)) {
 				log.Printf("Error al leer mensaje: %v", err)
 				return
 			}
-			onDataReceived(msg)
+
+			// Identificar el canal (stream) del mensaje
+			stream := "" // Extraer el canal de msg (implementación depende de la estructura del mensaje)
+
+			// Llamar a la función onDataReceived con el mensaje y el canal
+			onDataReceived(msg, stream)
 		}
 	}()
 }

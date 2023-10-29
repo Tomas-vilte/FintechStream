@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Tomas-vilte/FinanceStream/internal/config"
 	"github.com/Tomas-vilte/FinanceStream/internal/kafka"
 	"github.com/Tomas-vilte/FinanceStream/internal/realtime"
 	"log"
@@ -10,9 +11,17 @@ import (
 
 func main() {
 
-	// Configuración de Binance WebSocket
+	//Configuración de Binance WebSocket
 	symbol := "btcusdt"
 	channel := "bookTicker"
+
+	binanceConfig := config.RealTimeConfig{
+		BinanceChannels: []config.ChannelConfig{
+			{Symbol: "btcusdt", Channel: "bookTicker", KafkaTopic: "bookTicker"},
+			{Symbol: "btcusdt", Channel: "trade", KafkaTopic: "binance_trade"},
+		},
+		KafkaBroker: "localhost:9092",
+	}
 
 	binanceWS, err := realtime.NewBinanceWebSocket(symbol, channel)
 	if err != nil {
