@@ -1,13 +1,25 @@
 package realtime
 
 import (
+	"fmt"
 	"github.com/Tomas-vilte/FinanceStream/internal/config"
+	"github.com/Tomas-vilte/FinanceStream/internal/kafka"
 	"github.com/gorilla/websocket"
 	"log"
 )
 
 type BinanceWebSocket struct {
 	Connection *websocket.Conn
+}
+
+func SubscribeAndPublish(ws *BinanceWebSocket, kafkaConn *kafka.Producer, kafkaTopic string) {
+	go ws.SubscribeToChannel(func(data []byte) {
+		fmt.Printf("Recibiendo data de Binance: %v\n", string(data))
+		err := kafkaConn.PublishData(kafkaTopic, data)
+		if err != nil {
+			log.Fatalf("Error al enviar datos a Kafka para %s: %v\n", kafkaTopic, err)
+		}
+	})
 }
 
 func NewBinanceWebSocket(channels []config.ChannelConfig) (*BinanceWebSocket, error) {
