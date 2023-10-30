@@ -1,11 +1,9 @@
 package main
 
 import (
+	"github.com/Tomas-vilte/FinanceStream/app"
 	"github.com/Tomas-vilte/FinanceStream/internal/config"
-	"github.com/Tomas-vilte/FinanceStream/internal/kafka"
-	"github.com/Tomas-vilte/FinanceStream/internal/realtime"
 	"log"
-	"time"
 )
 
 func main() {
@@ -25,24 +23,8 @@ func main() {
 		KafkaBroker: "localhost:9092",
 	}
 
-	kafkaConn, err := kafka.NewKafkaProducer(appConfig.KafkaBroker)
+	err := app.RunApplication(appConfig)
 	if err != nil {
-		log.Fatal("Error al crear la conexión a Kafka:", err)
-		return
+		log.Fatalf("Error en la aplicacion: %v", err)
 	}
-	defer kafkaConn.Close()
-
-	// Procesar cada configuración de canal
-	for _, channelConfig := range appConfig.BinanceChannels {
-		channelWS, err := realtime.NewBinanceWebSocket([]config.ChannelConfig{channelConfig})
-		if err != nil {
-			log.Fatalf("Error al crear la conexión WebSocket para %s: %v\n", channelConfig.Channel, err)
-		}
-		defer channelWS.Close()
-
-		// Suscribirse y publicar en Kafka
-		subscribeAndPublish(channelWS, kafkaConn, channelConfig.KafkaTopic)
-	}
-
-	time.Sleep(1 * time.Minute)
 }
