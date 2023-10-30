@@ -7,6 +7,8 @@ services:
     container_name: zookeeper
     ports:
       - "2181:2181"
+    networks:
+      - fintechstream_default
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_SERVER_ID: 1
@@ -17,6 +19,8 @@ services:
     container_name: broker
     ports:
       - "9092:9092"
+    networks:
+      - fintechstream_default
     depends_on:
       - zookeeper
     environment:
@@ -27,3 +31,29 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+  spark-master:
+    image: bitnami/spark:latest
+    command: bin/spark-class org.apache.spark.deploy.master.Master
+    ports:
+       - "7077:7077" 
+       - "8080:8080" 
+    networks:
+      - fintechstream_default
+  
+  spark-worker:
+    image: bitnami/spark:latest
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    depends_on:
+      - spark-master
+    environment:
+      SPARK_MODE: worker
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 2g
+      SPARK_MASTER_URL: spark://spark-master:7077
+    networks:
+      - fintechstream_default
+
+    
+networks:
+  fintechstream_default:
