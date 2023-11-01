@@ -33,7 +33,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
 
   spark-master:
-    image: bitnami/spark:latest
+    image: bitnami/spark:3.1.3
     command: bin/spark-class org.apache.spark.deploy.master.Master
     ports:
        - "7077:7077" 
@@ -42,7 +42,7 @@ services:
       - fintechstream_default
   
   spark-worker:
-    image: bitnami/spark:latest
+    image: bitnami/spark:3.1.3
     command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
     depends_on:
       - spark-master
