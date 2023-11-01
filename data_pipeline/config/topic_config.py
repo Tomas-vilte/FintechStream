@@ -1,10 +1,9 @@
 TOPICS_CONFIG: dict = {
+    "broker": "localhost:9092",
     "binanceBookTicker": {
-        "bootstrap.servers": "localhost:9092",
         "topic": "binanceBookTicker",
     },
     "binanceTrade": {
-        "bootstrap.servers": "localhost:9092",
         "topic": "binanceTrade",
     }
 }
