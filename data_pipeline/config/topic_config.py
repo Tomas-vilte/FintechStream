@@ -1,5 +1,5 @@
 TOPICS_CONFIG: dict = {
-    "broker": "localhost:9092",
+    "host": "broker:9092",
     "binanceBookTicker": {
         "topic": "binanceBookTicker",
     },

@@ -2,6 +2,8 @@ import logging
 from data_pipeline.config.topic_config import TOPICS_CONFIG
 from pyspark.sql import SparkSession, DataFrame
 from typing import Optional
+from pyspark.sql.functions import from_json
+from data_pipeline.schema.binance_book_ticker_schema import binance_json_schema
 
 
 def create_spark_session(app: str) -> Optional[SparkSession]:
@@ -23,7 +25,7 @@ def connect_to_kafka(spark: SparkSession) -> Optional[DataFrame]:
     try:
         read_stream = spark.readStream \
             .format("kafka") \
-            .option("kafka.bootstrap.servers", TOPICS_CONFIG["broker"]) \
+            .option("kafka.bootstrap.servers", TOPICS_CONFIG["host"]) \
             .option("subscribe", TOPICS_CONFIG["binanceBookTicker"]["topic"]) \
             .load()
 
@@ -39,21 +41,34 @@ if __name__ == "__main__":
 
     if spark_conn is not None:
         read_stream_binance = connect_to_kafka(spark_conn)
-        df = read_stream_binance.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
-        df.printSchema()
-        # if read_stream_binance:
-        #     query = read_stream_binance \
-        #         .writeStream \
-        #         .outputMode("append") \
-        #         .format("console") \
-        #         .start()
-        #     try:
-        #         query.awaitTermination(timeout=60)
-        #     except KeyboardInterrupt as e:
-        #         query.stop()
-        #     except Exception as e:
-        #         logging.error(f"Error en la ejecuccion: {e}")
-        # else:
-        #     print("No se pudo conectar a kafka.")
+        if read_stream_binance:
+            parsed_df = read_stream_binance.selectExpr("CAST(value AS STRING) as json") \
+                .select(from_json("json", binance_json_schema).alias("data")) \
+                .select("data.*")
+
+            query = parsed_df \
+                .writeStream \
+                .format("parquet") \
+                .outputMode("append") \
+                .option("path", "./raw_data") \
+                .option("checkpointLocation", "./checkpoint") \
+                .start()
+
+            console_query = parsed_df \
+                .writeStream \
+                .outputMode("append") \
+                .format("console") \
+                .start()
+
+            try:
+                query.awaitTermination(timeout=60)
+                console_query.awaitTermination(timeout=60)
+            except KeyboardInterrupt as e:
+                query.stop()
+                console_query.stop()
+            except Exception as e:
+                logging.error(f"Error en la ejecuccion: {e}")
+        else:
+            print("No se pudo conectar a kafka.")
     else:
         print("No se pudo crear la conexion de spark.")
