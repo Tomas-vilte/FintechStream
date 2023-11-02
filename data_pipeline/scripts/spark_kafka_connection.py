@@ -46,12 +46,12 @@ if __name__ == "__main__":
                 .select(from_json("json", binance_json_schema).alias("data")) \
                 .select("data.*")
 
-            query = parsed_df \
+            json_df = parsed_df.selectExpr("to_json(struct(*)) AS jsonData")
+
+            query = json_df \
                 .writeStream \
-                .format("parquet") \
+                .foreachBatch() \
                 .outputMode("append") \
-                .option("path", "./raw_data") \
-                .option("checkpointLocation", "./checkpoint") \
                 .start()
 
             console_query = parsed_df \
