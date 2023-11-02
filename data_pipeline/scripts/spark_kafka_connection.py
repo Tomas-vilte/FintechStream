@@ -43,12 +43,18 @@ if __name__ == "__main__":
         read_stream_binance = connect_to_kafka(spark_conn)
         if read_stream_binance:
             parsed_df = read_stream_binance.selectExpr("CAST(value AS STRING) as json") \
-                    .select(from_json("json", binance_json_schema).alias("data")) \
-                    .select("data.*")
-
-            parsed_df.show()
+                .select(from_json("json", binance_json_schema).alias("data")) \
+                .select("data.*")
 
             query = parsed_df \
+                .writeStream \
+                .format("parquet") \
+                .outputMode("append") \
+                .option("path", "./raw_data") \
+                .option("checkpointLocation", "./checkpoint") \
+                .start()
+
+            console_query = parsed_df \
                 .writeStream \
                 .outputMode("append") \
                 .format("console") \
@@ -56,8 +62,10 @@ if __name__ == "__main__":
 
             try:
                 query.awaitTermination(timeout=60)
+                console_query.awaitTermination(timeout=60)
             except KeyboardInterrupt as e:
                 query.stop()
+                console_query.stop()
             except Exception as e:
                 logging.error(f"Error en la ejecuccion: {e}")
         else:
