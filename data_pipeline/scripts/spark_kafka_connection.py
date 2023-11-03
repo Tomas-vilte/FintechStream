@@ -2,7 +2,7 @@ import logging
 from data_pipeline.config.topic_config import TOPICS_CONFIG
 from pyspark.sql import SparkSession, DataFrame
 from typing import Optional
-from pyspark.sql.functions import from_json
+from pyspark.sql.functions import from_json, col
 from data_pipeline.schema.binance_book_ticker_schema import binance_json_schema
 
 
@@ -26,6 +26,7 @@ def connect_to_kafka(spark: SparkSession) -> Optional[DataFrame]:
         read_stream = spark.readStream \
             .format("kafka") \
             .option("kafka.bootstrap.servers", TOPICS_CONFIG["host"]) \
+            .option("startingOffsets", "earliest") \
             .option("subscribe", TOPICS_CONFIG["binanceBookTicker"]["topic"]) \
             .load()
 
@@ -42,16 +43,17 @@ if __name__ == "__main__":
     if spark_conn is not None:
         read_stream_binance = connect_to_kafka(spark_conn)
         if read_stream_binance:
-            parsed_df = read_stream_binance.selectExpr("CAST(value AS STRING) as json") \
-                .select(from_json("json", binance_json_schema).alias("data")) \
+            parsed_df = read_stream_binance.selectExpr("CAST(value AS STRING)") \
+                .select(from_json("value", binance_json_schema).alias("data")) \
                 .select("data.*")
 
-            json_df = parsed_df.selectExpr("to_json(struct(*)) AS jsonData")
-
-            query = json_df \
+            query = parsed_df \
                 .writeStream \
-                .foreachBatch() \
+                .format("json") \
+                .option("path", "/opt/bitnami/data1") \
+                .option("checkpointLocation", "/opt/bitnami/data1") \
                 .outputMode("append") \
+                .trigger(processingTime="60 seconds") \
                 .start()
 
             console_query = parsed_df \
@@ -61,11 +63,11 @@ if __name__ == "__main__":
                 .start()
 
             try:
-                query.awaitTermination(timeout=60)
                 console_query.awaitTermination(timeout=60)
+                query.awaitTermination(timeout=60)
             except KeyboardInterrupt as e:
-                query.stop()
                 console_query.stop()
+                query.stop()
             except Exception as e:
                 logging.error(f"Error en la ejecuccion: {e}")
         else:
