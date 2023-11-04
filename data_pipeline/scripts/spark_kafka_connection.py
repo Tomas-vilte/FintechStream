@@ -47,13 +47,14 @@ if __name__ == "__main__":
                 read_stream_binance, binance_json_schema
             )
 
-            query = create_file_write_stream(
+            query = (create_file_write_stream(
                 parsed_df,
-                "/opt/bitnami/data_pipeline",
-                "/opt/bitnami/data_pipeline",
+                "/opt/bitnami/data_pipeline/raw_data",
+                "/opt/bitnami/data_pipeline/checkpoint",
                 "json",
                 "20 seconds"
-            ).start()
+            ).option("maxRecordsPerFile", 10000)
+                     .start())
 
             console_query = parsed_df \
                 .writeStream \

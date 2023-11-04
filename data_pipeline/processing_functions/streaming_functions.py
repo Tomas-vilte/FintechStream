@@ -1,11 +1,12 @@
 import logging
+from typing import Optional
 from pyspark.sql.streaming import DataStreamWriter
 from pyspark.sql.types import StructType
 from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.functions import from_json
 
 
-def process_streaming(stream: DataFrame, stream_schema: StructType) -> DataFrame | None:
+def process_streaming(stream: DataFrame, stream_schema: StructType) -> Optional[DataFrame]:
     """
        Procesa datos de streaming.
 
@@ -28,7 +29,7 @@ def process_streaming(stream: DataFrame, stream_schema: StructType) -> DataFrame
 
 
 def create_file_write_stream(stream: DataFrame, storage_path: str, checkpoint_path: str,
-                             file_format: str, trigger_interval: str) -> DataStreamWriter | None:
+                             file_format: str, trigger_interval: str) -> Optional[DataStreamWriter]:
     """
        Configura la escritura en streaming.
 
