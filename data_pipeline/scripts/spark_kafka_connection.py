@@ -2,8 +2,8 @@ import logging
 from data_pipeline.config.topic_config import TOPICS_CONFIG
 from pyspark.sql import SparkSession, DataFrame
 from typing import Optional
-from pyspark.sql.functions import from_json, col
 from data_pipeline.schema.binance_book_ticker_schema import binance_json_schema
+from data_pipeline.processing_functions.streaming_functions import process_streaming, create_file_write_stream
 
 
 def create_spark_session(app: str) -> Optional[SparkSession]:
@@ -43,18 +43,18 @@ if __name__ == "__main__":
     if spark_conn is not None:
         read_stream_binance = connect_to_kafka(spark_conn)
         if read_stream_binance:
-            parsed_df = read_stream_binance.selectExpr("CAST(value AS STRING)") \
-                .select(from_json("value", binance_json_schema).alias("data")) \
-                .select("data.*")
+            parsed_df = process_streaming(
+                read_stream_binance, binance_json_schema
+            )
 
-            query = parsed_df \
-                .writeStream \
-                .format("json") \
-                .option("path", "/opt/bitnami/data1") \
-                .option("checkpointLocation", "/opt/bitnami/data1") \
-                .outputMode("append") \
-                .trigger(processingTime="60 seconds") \
-                .start()
+            query = (create_file_write_stream(
+                parsed_df,
+                "/opt/bitnami/data_pipeline/raw_data",
+                "/opt/bitnami/data_pipeline/checkpoint",
+                "json",
+                "20 seconds"
+            ).option("maxRecordsPerFile", 10000)
+                     .start())
 
             console_query = parsed_df \
                 .writeStream \
