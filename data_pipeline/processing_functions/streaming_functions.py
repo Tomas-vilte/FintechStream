@@ -28,12 +28,30 @@ def process_streaming(stream: DataFrame, stream_schema: StructType) -> DataFrame
 
 
 def create_file_write_stream(stream: DataFrame, storage_path: str, checkpoint_path: str,
-                             file_format: str) -> DataStreamWriter:
-    write_stream = stream.writeStream \
-        .format(file_format) \
-        .option("path", storage_path) \
-        .option("checkpointLocation", checkpoint_path) \
-        .trigger(processingTime="20 seconds") \
-        .outputMode("append")
+                             file_format: str, trigger_interval: str) -> DataStreamWriter | None:
+    """
+       Configura la escritura en streaming.
 
-    return write_stream
+       Args:
+           stream (DataFrame): El DataFrame de streaming a escribir.
+           storage_path (str): La ruta de almacenamiento.
+           checkpoint_path (str): La ubicación de checkpoint.
+           file_format (str): El formato de archivo.
+           trigger_interval (str): El intervalo de disparo.
+
+       Returns:
+           DataStreamWriter: El objeto DataStreamWriter configurado.
+    """
+    try:
+        write_stream = stream.writeStream \
+            .format(file_format) \
+            .option("path", storage_path) \
+            .option("checkpointLocation", checkpoint_path) \
+            .trigger(processingTime=trigger_interval) \
+            .outputMode("append")
+
+        logging.info("Guardado con exito")
+        return write_stream
+    except Exception as error:
+        logging.error(f"Error en la configuracion de escritura en streaming: {error}")
+        return None

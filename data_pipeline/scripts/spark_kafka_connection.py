@@ -51,7 +51,8 @@ if __name__ == "__main__":
                 parsed_df,
                 "/opt/bitnami/data_pipeline",
                 "/opt/bitnami/data_pipeline",
-                "json"
+                "json",
+                "20 seconds"
             ).start()
 
             console_query = parsed_df \
