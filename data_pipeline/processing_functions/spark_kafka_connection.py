@@ -2,7 +2,7 @@ import logging
 from data_pipeline.config.topic_config import TOPICS_CONFIG
 from pyspark.sql import SparkSession, DataFrame
 from typing import Optional
-from pyspark.sql.functions import from_json, col
+from pyspark.sql.functions import from_json
 from data_pipeline.schema.binance_book_ticker_schema import binance_json_schema
 
 
@@ -50,10 +50,10 @@ if __name__ == "__main__":
             query = parsed_df \
                 .writeStream \
                 .format("json") \
-                .option("path", "/opt/bitnami/data1") \
-                .option("checkpointLocation", "/opt/bitnami/data1") \
+                .option("path", "/opt/bitnami/data_pipeline") \
+                .option("checkpointLocation", "/opt/bitnami/data_pipeline") \
                 .outputMode("append") \
-                .trigger(processingTime="60 seconds") \
+                .trigger(processingTime="10 seconds") \
                 .start()
 
             console_query = parsed_df \
