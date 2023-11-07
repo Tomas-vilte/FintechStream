@@ -4,7 +4,6 @@ from pyspark.sql.streaming import DataStreamWriter
 from pyspark.sql.types import StructType
 from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.functions import from_json
-from data_pipeline.config.topic_config import TOPICS_CONFIG
 
 
 def get_kafka_topics(topics_config: dict) -> str:
@@ -62,7 +61,3 @@ def create_file_write_stream(stream: DataFrame, storage_path: str, checkpoint_pa
     except Exception as error:
         logging.error(f"Error en la configuracion de escritura en streaming: {error}")
         return None
-
-
-if __name__ == "__main__":
-    print(get_kafka_topics(TOPICS_CONFIG))

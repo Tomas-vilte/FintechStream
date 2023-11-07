@@ -1,9 +1,10 @@
 package main
 
 import (
+	"log"
+
 	"github.com/Tomas-vilte/FinanceStream/app"
 	"github.com/Tomas-vilte/FinanceStream/internal/config"
-	"log"
 )
 
 func main() {
@@ -17,7 +18,7 @@ func main() {
 			{
 				Symbol:     "btcusdt",
 				Channel:    "ticker",
-				KafkaTopic: "binanceTrade",
+				KafkaTopic: "binanceTicker",
 			},
 		},
 		KafkaBroker: "localhost:9092",
