@@ -6,11 +6,6 @@ from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.functions import from_json
 
 
-def get_kafka_topics(topics_config: dict) -> str:
-    topics = [topic_data["topic"] for topic_data in topics_config.values() if "topic" in topic_data]
-    return ",".join(topics)
-
-
 def process_streaming(stream: DataFrame, stream_schema: StructType) -> Optional[DataFrame]:
     """
        Procesa datos de streaming.
