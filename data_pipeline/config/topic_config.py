@@ -2,13 +2,14 @@ from data_pipeline.schema.binance_book_ticker_schema import binance_json_schema
 from data_pipeline.schema.binance_ticker_schema import binance_json_ticker_schema
 
 TOPICS_CONFIG: dict = {
-    "host": "broker:9092",
     "binanceBookTicker": {
         "topic": "binanceBookTicker",
-        "schema": binance_json_schema
+        "schema": binance_json_schema,
+        "host": "broker:9092"
     },
     "binanceTrade": {
         "topic": "binanceTrade",
-        "schema": binance_json_ticker_schema
+        "schema": binance_json_ticker_schema,
+        "host": "broker:9092",
     }
 }

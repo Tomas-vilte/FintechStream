@@ -21,17 +21,22 @@ def create_spark_session(app: str) -> Optional[SparkSession]:
         return None
 
 
-def connect_to_kafka(spark: SparkSession) -> Optional[DataFrame]:
+def connect_to_kafka(spark: SparkSession, topic: str) -> Optional[DataFrame]:
     try:
-        read_stream = spark.readStream \
-            .format("kafka") \
-            .option("kafka.bootstrap.servers", TOPICS_CONFIG["host"]) \
-            .option("startingOffsets", "earliest") \
-            .option("subscribe", TOPICS_CONFIG["binanceBookTicker"]["topic"]) \
-            .load()
+        topic_config = TOPICS_CONFIG.get(topic)
+        if topic_config:
+            read_stream = spark.readStream \
+                .format("kafka") \
+                .option("kafka.bootstrap.servers", topic_config.get("host")) \
+                .option("startingOffsets", "earliest") \
+                .option("subscribe", topic_config.get(topic)) \
+                .load()
 
-        logging.info(f"Conexion de kafka creada con exito")
-        return read_stream
+            logging.info(f"Conexión de Kafka al topic '{topic}' creada con éxito")
+            return read_stream
+        else:
+            logging.error(f"El topic '{topic}' no está configurado en TOPICS_CONFIG")
+            return None
     except Exception as error:
         logging.error(f"Hubo un error al conectarse a kafka: {error}")
         return None
