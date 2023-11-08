@@ -3,8 +3,8 @@ from data_pipeline.config.topic_config import TOPICS_CONFIG
 from pyspark.sql import SparkSession, DataFrame
 from typing import Optional
 from data_pipeline.processing_functions.streaming_functions import process_streaming, create_file_write_stream
-from data_pipeline.schema.binance_ticker_schema import binance_json_ticker_schema
 from data_pipeline.schema.binance_book_ticker_schema import binance_json_schema
+from data_pipeline.schema.binance_ticker_schema import binance_json_ticker_schema
 
 
 def create_spark_session(app: str) -> Optional[SparkSession]:
@@ -22,14 +22,14 @@ def create_spark_session(app: str) -> Optional[SparkSession]:
         return None
 
 
-def connect_to_kafka(spark: SparkSession) -> Optional[DataFrame]:
+def connect_to_kafka(spark: SparkSession, topic: str) -> Optional[DataFrame]:
     try:
         read_stream = spark.readStream \
             .format("kafka") \
             .option("kafka.bootstrap.servers", "broker:9092") \
             .option("startingOffsets", "earliest") \
             .option("failOnDataLoss", "false") \
-            .option("subscribe", TOPICS_CONFIG["binanceBookTicker"]["topic"]) \
+            .option("subscribe", TOPICS_CONFIG[topic]["topic"]) \
             .load()
 
         logging.info(f"Conexión de Kafka creada con éxito")
@@ -43,36 +43,32 @@ if __name__ == "__main__":
     spark_conn = create_spark_session("streamingBinance")
 
     if spark_conn is not None:
-        read_stream_binance = connect_to_kafka(spark_conn)
-        if read_stream_binance:
-            parsed_df = process_streaming(
-                read_stream_binance, binance_json_schema
-            )
-            print(parsed_df.printSchema())
-            query = (create_file_write_stream(
-                parsed_df,
-                "/opt/bitnami/data_pipeline/raw_data",
-                "/opt/bitnami/data_pipeline/checkpoint",
-                "json",
-                "20 seconds"
-            ).option("maxRecordsPerFile", 10000)
-                     .start())
+        read_stream_bookTicker = connect_to_kafka(spark_conn, "binanceBookTicker")
+        read_stream_Ticker = connect_to_kafka(spark_conn, "binanceTicker")
 
-            console_query = parsed_df \
-                .writeStream \
-                .outputMode("append") \
-                .format("console") \
-                .start()
+        parsed_df_bookTicker = process_streaming(
+            read_stream_bookTicker, binance_json_schema
+        )
 
-            try:
-                console_query.awaitTermination(timeout=60)
-                query.awaitTermination(timeout=60)
-            except KeyboardInterrupt as e:
-                console_query.stop()
-                query.stop()
-            except Exception as e:
-                logging.error(f"Error en la ejecuccion: {e}")
-        else:
-            print("No se pudo conectar a kafka.")
-    else:
-        print("No se pudo crear la conexion de spark.")
+        parsed_df_Ticker = process_streaming(
+            read_stream_Ticker, binance_json_ticker_schema
+        )
+
+        query_bookTicker = create_file_write_stream(
+            parsed_df_bookTicker,
+            "/opt/bitnami/data_pipeline/raw_data/book_ticker",
+            "/opt/bitnami/data_pipeline/checkpoint",
+            "20 seconds",
+            "json"
+        )
+
+        query_Ticker = create_file_write_stream(
+            parsed_df_Ticker,
+            "/opt/bitnami/data_pipeline/raw_data/ticker",
+            "/opt/bitnami/data_pipeline/checkpoint",
+            "10 seconds",
+            "json"
+        )
+
+        query_bookTicker.awaitTermination(timeout=30)
+        query_Ticker.awaitTermination(timeout=30)

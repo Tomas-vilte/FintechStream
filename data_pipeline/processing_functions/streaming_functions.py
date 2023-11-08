@@ -1,6 +1,6 @@
 import logging
 from typing import Optional
-from pyspark.sql.streaming import DataStreamWriter
+from pyspark.sql.streaming import DataStreamWriter, StreamingQuery
 from pyspark.sql.types import StructType
 from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.functions import from_json
@@ -29,7 +29,7 @@ def process_streaming(stream: DataFrame, stream_schema: StructType) -> Optional[
 
 
 def create_file_write_stream(stream: DataFrame, storage_path: str, checkpoint_path: str,
-                             file_format: str, trigger_interval: str) -> Optional[DataStreamWriter]:
+                             trigger_interval: str, file_format: str = "parquet", ) -> Optional[DataStreamWriter]:
     """
        Configura la escritura en streaming.
 
@@ -50,7 +50,6 @@ def create_file_write_stream(stream: DataFrame, storage_path: str, checkpoint_pa
             .option("checkpointLocation", checkpoint_path) \
             .trigger(processingTime=trigger_interval) \
             .outputMode("append")
-
         logging.info("Guardado con exito")
         return write_stream
     except Exception as error:
