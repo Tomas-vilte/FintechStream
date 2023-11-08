@@ -7,6 +7,15 @@ from pyspark.errors import AnalysisException, StreamingQueryException
 
 
 def create_spark_session(app: str) -> Optional[SparkSession]:
+    """
+        Crea una sesión de Spark.
+
+        Args:
+            app (str): El nombre de la aplicación Spark.
+
+        Returns:
+            SparkSession: La sesión de Spark creada o None si hay un error.
+        """
     try:
         conn = SparkSession.builder \
             .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.3") \
@@ -24,6 +33,16 @@ def create_spark_session(app: str) -> Optional[SparkSession]:
 
 
 def connect_to_kafka(spark: SparkSession, topics: str) -> Optional[DataFrame]:
+    """
+        Conecta a un servidor Kafka y recupera datos de streaming.
+
+        Args:
+            spark (SparkSession): La sesión de Spark.
+            topics (str): Los temas de Kafka a los que suscribirse.
+
+        Returns:
+            DataFrame: El DataFrame de streaming creado o None si hay un error.
+        """
     try:
         read_streams = spark.readStream \
             .format("kafka") \
