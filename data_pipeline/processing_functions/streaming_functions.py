@@ -44,11 +44,11 @@ def create_file_write_stream(stream: DataFrame, storage_path: str, checkpoint_pa
            stream (DataFrame): El DataFrame de streaming a escribir.
            storage_path (str): La ruta de almacenamiento.
            checkpoint_path (str): La ubicación de checkpoint.
-           file_format (str): El formato de archivo.
+           file_format (str): El formato de archivo por default es parquet, sino se especifica.
            trigger_interval (str): El intervalo de disparo.
 
        Returns:
-           DataStreamWriter: El objeto DataStreamWriter configurado.
+           StreamingQuery: El objeto StreamingQuery configurado.
     """
     try:
         write_stream = stream.writeStream \

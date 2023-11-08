@@ -1,10 +1,9 @@
 import logging
-from data_pipeline.config.topic_config import TOPICS_CONFIG
 from pyspark.sql import SparkSession, DataFrame
 from typing import Optional
+from data_pipeline.config.topic_config import TOPICS_CONFIG
 from data_pipeline.processing_functions.streaming_functions import process_streaming, create_file_write_stream
-from data_pipeline.schema.binance_book_ticker_schema import binance_json_schema
-from data_pipeline.schema.binance_ticker_schema import binance_json_ticker_schema
+from pyspark.errors import AnalysisException, StreamingQueryException
 
 
 def create_spark_session(app: str) -> Optional[SparkSession]:
@@ -17,58 +16,59 @@ def create_spark_session(app: str) -> Optional[SparkSession]:
         conn.sparkContext.setLogLevel("ERROR")
         logging.info("Conexion creada con exito")
         return conn
-    except Exception as error:
-        logging.error(f"Hubo un error al crear la session de spark: {error}")
-        return None
+    except AnalysisException as ERROR:
+        logging.error(f"Error de analisis: {ERROR}")
+    except Exception as ERROR:
+        logging.error(f"Hubo un error al crear la session de spark: {ERROR}")
+    return None
 
 
-def connect_to_kafka(spark: SparkSession, topic: str) -> Optional[DataFrame]:
+def connect_to_kafka(spark: SparkSession, topics: str) -> Optional[DataFrame]:
     try:
-        read_stream = spark.readStream \
+        read_streams = spark.readStream \
             .format("kafka") \
             .option("kafka.bootstrap.servers", "broker:9092") \
             .option("startingOffsets", "earliest") \
             .option("failOnDataLoss", "false") \
-            .option("subscribe", TOPICS_CONFIG[topic]["topic"]) \
+            .option("subscribe", topics) \
             .load()
 
         logging.info(f"Conexión de Kafka creada con éxito")
-        return read_stream
-    except Exception as error:
-        logging.error(f"Hubo un error al conectarse a kafka: {error}")
-        return None
+        return read_streams
+    except StreamingQueryException as e:
+        logging.error(f"Error de consulta de streaming: {e}")
+    except AnalysisException as e:
+        logging.error(f"Error de análisis: {e}")
+    except Exception as e:
+        logging.error(f"Hubo un error al conectarse a kafka: {e}")
+    return None
 
 
 if __name__ == "__main__":
     spark_conn = create_spark_session("streamingBinance")
 
     if spark_conn is not None:
-        read_stream_bookTicker = connect_to_kafka(spark_conn, "binanceBookTicker")
-        read_stream_Ticker = connect_to_kafka(spark_conn, "binanceTicker")
+        query_streams = {}
 
-        parsed_df_bookTicker = process_streaming(
-            read_stream_bookTicker, binance_json_schema
-        )
+        for topic, config in TOPICS_CONFIG.items():
+            read_stream = connect_to_kafka(spark_conn, topic)
+            parsed_df = process_streaming(read_stream, config["schema"])
+            query_stream = create_file_write_stream(
+                parsed_df,
+                config["output_location"],
+                config["checkpoint_location"],
+                "5 seconds",
+                "json"
+            )
+            query_streams[topic] = query_stream
 
-        parsed_df_Ticker = process_streaming(
-            read_stream_Ticker, binance_json_ticker_schema
-        )
-
-        query_bookTicker = create_file_write_stream(
-            parsed_df_bookTicker,
-            "/opt/bitnami/data_pipeline/raw_data/book_ticker",
-            "/opt/bitnami/data_pipeline/checkpoint",
-            "5 seconds",
-            "json"
-        )
-
-        query_Ticker = create_file_write_stream(
-            parsed_df_Ticker,
-            "/opt/bitnami/data_pipeline/raw_data/ticker",
-            "/opt/bitnami/data_pipeline/checkpoint",
-            "5 seconds",
-            "json"
-        )
-
-        query_bookTicker.awaitTermination(timeout=30)
-        query_Ticker.awaitTermination(timeout=30)
+            try:
+                for query in query_streams.values():
+                    query.awaitTermination(timeout=30)
+            except KeyboardInterrupt as error:
+                for query in query_streams.values():
+                    query.stop()
+            except Exception as error:
+                logging.error(f"Error en la ejecuccion: {error}")
+        else:
+            logging.error("No se pudo crear la conexión de Spark")
