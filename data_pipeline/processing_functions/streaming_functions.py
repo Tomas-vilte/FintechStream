@@ -1,6 +1,7 @@
 import logging
 from typing import Optional
-from pyspark.sql.streaming import DataStreamWriter, StreamingQuery
+from pyspark.errors import AnalysisException, StreamingQueryException
+from pyspark.sql.streaming import StreamingQuery
 from pyspark.sql.types import StructType
 from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.functions import from_json
@@ -8,7 +9,11 @@ from pyspark.sql.functions import from_json
 
 def process_and_write_to_location(output_location: str):
     def foreach_batch_function(df, batch_id):
-        df.write.format("json").mode("append").save(output_location)
+        try:
+            df.write.format("json").mode("append").save(output_location)
+            logging.info("Escritura completada con exito")
+        except Exception as error:
+            logging.error(f"Error en la escritura de datos: {error}")
 
     return foreach_batch_function
 
@@ -30,6 +35,8 @@ def process_streaming(stream: DataFrame, stream_schema: StructType) -> Optional[
             .select("data.*")
         logging.info("Procesamiento completado con exito")
         return parsed_df
+    except AnalysisException as error:
+        logging.error(f"Error de análisis: {error}")
     except Exception as error:
         logging.error(f"Error en el procesamiento de datos: {error}")
         return None
@@ -61,6 +68,10 @@ def create_file_write_stream(stream: DataFrame, storage_path: str, checkpoint_pa
 
         logging.info("Guardado con exito")
         return write_stream
+    except AnalysisException as error:
+        logging.error(f"Error de análisis: {error}")
+    except StreamingQueryException as error:
+        logging.error(f"Error en la consulta de streaming: {error}")
     except Exception as error:
-        logging.error(f"Error en la configuracion de escritura en streaming: {error}")
+        logging.error(f"Error en la configuración de escritura en streaming: {error}")
         return None
