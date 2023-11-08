@@ -58,7 +58,7 @@ if __name__ == "__main__":
             parsed_df_bookTicker,
             "/opt/bitnami/data_pipeline/raw_data/book_ticker",
             "/opt/bitnami/data_pipeline/checkpoint",
-            "20 seconds",
+            "5 seconds",
             "json"
         )
 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
             parsed_df_Ticker,
             "/opt/bitnami/data_pipeline/raw_data/ticker",
             "/opt/bitnami/data_pipeline/checkpoint",
-            "10 seconds",
+            "5 seconds",
             "json"
         )
 

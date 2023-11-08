@@ -7,7 +7,7 @@ from pyspark.sql.functions import from_json
 
 
 def process_and_write_to_location(output_location: str):
-    def foreach_batch_function(df: DataFrame, batch_id: str):
+    def foreach_batch_function(df, batch_id):
         df.write.format("json").mode("append").save(output_location)
 
     return foreach_batch_function
@@ -36,7 +36,7 @@ def process_streaming(stream: DataFrame, stream_schema: StructType) -> Optional[
 
 
 def create_file_write_stream(stream: DataFrame, storage_path: str, checkpoint_path: str,
-                             trigger_interval: str, file_format: str = "parquet", ) -> Optional[DataStreamWriter]:
+                             trigger_interval: str, file_format: str = "parquet", ) -> Optional[StreamingQuery]:
     """
        Configura la escritura en streaming.
 
@@ -53,10 +53,12 @@ def create_file_write_stream(stream: DataFrame, storage_path: str, checkpoint_pa
     try:
         write_stream = stream.writeStream \
             .format(file_format) \
-            .option("path", storage_path) \
             .option("checkpointLocation", checkpoint_path) \
             .trigger(processingTime=trigger_interval) \
-            .outputMode("append")
+            .outputMode("append") \
+            .foreachBatch(process_and_write_to_location(storage_path)) \
+            .start()
+
         logging.info("Guardado con exito")
         return write_stream
     except Exception as error:
