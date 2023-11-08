@@ -6,6 +6,13 @@ from pyspark.sql.dataframe import DataFrame
 from pyspark.sql.functions import from_json
 
 
+def process_and_write_to_location(output_location: str):
+    def foreach_batch_function(df: DataFrame, batch_id: str):
+        df.write.format("json").mode("append").save(output_location)
+
+    return foreach_batch_function
+
+
 def process_streaming(stream: DataFrame, stream_schema: StructType) -> Optional[DataFrame]:
     """
        Procesa datos de streaming.
