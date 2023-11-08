@@ -1,10 +1,10 @@
-from pyspark.sql.types import StructField, StructType, StringType, IntegerType
+from pyspark.sql.types import StructField, StructType, StringType, LongType
 
 binance_json_ticker_schema = StructType([
     StructField("stream", StringType(), True),
     StructField("data", StructType([
         StructField("e", StringType(), True),
-        StructField("E", IntegerType(), True),
+        StructField("E", LongType(), True),
         StructField("s", StringType(), True),
         StructField("p", StringType(), True),
         StructField("P", StringType(), True),
@@ -21,10 +21,11 @@ binance_json_ticker_schema = StructType([
         StructField("l", StringType(), True),
         StructField("v", StringType(), True),
         StructField("q", StringType(), True),
-        StructField("O", IntegerType(), True),
-        StructField("C", IntegerType(), True),
-        StructField("F", IntegerType(), True),
-        StructField("L", IntegerType(), True),
-        StructField("n", IntegerType(), True)
-    ]), True)
+        StructField("O", LongType(), True),
+        StructField("C", LongType(), True),
+        StructField("F", LongType(), True),
+        StructField("L", LongType(), True),
+        StructField("n", LongType(), True)
+
+    ]))
 ])
