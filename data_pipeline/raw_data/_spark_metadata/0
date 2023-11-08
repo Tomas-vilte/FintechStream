@@ -1,2 +1,2 @@
 v1
-{"path":"file:///opt/bitnami/data_pipeline/raw_data/part-00000-610128d3-5cec-4211-8bce-5e31e96fd112-c000.json","size":179726,"isDir":false,"modificationTime":1699139478630,"blockReplication":1,"blockSize":33554432,"action":"add"}
+{"path":"file:///opt/bitnami/data_pipeline/raw_data/part-00000-9ece6894-c945-4f7a-83e9-7efd8a9ec87c-c000.json","size":980,"isDir":false,"modificationTime":1699391493634,"blockReplication":1,"blockSize":33554432,"action":"add"}

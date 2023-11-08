@@ -2,8 +2,9 @@ import logging
 from data_pipeline.config.topic_config import TOPICS_CONFIG
 from pyspark.sql import SparkSession, DataFrame
 from typing import Optional
-from data_pipeline.schema.binance_book_ticker_schema import binance_json_schema
 from data_pipeline.processing_functions.streaming_functions import process_streaming, create_file_write_stream
+from data_pipeline.schema.binance_ticker_schema import binance_json_ticker_schema
+from data_pipeline.schema.binance_book_ticker_schema import binance_json_schema
 
 
 def create_spark_session(app: str) -> Optional[SparkSession]:
@@ -21,22 +22,18 @@ def create_spark_session(app: str) -> Optional[SparkSession]:
         return None
 
 
-def connect_to_kafka(spark: SparkSession, topic: str) -> Optional[DataFrame]:
+def connect_to_kafka(spark: SparkSession) -> Optional[DataFrame]:
     try:
-        topic_config = TOPICS_CONFIG.get(topic)
-        if topic_config:
-            read_stream = spark.readStream \
-                .format("kafka") \
-                .option("kafka.bootstrap.servers", topic_config.get("host")) \
-                .option("startingOffsets", "earliest") \
-                .option("subscribe", topic_config.get(topic)) \
-                .load()
+        read_stream = spark.readStream \
+            .format("kafka") \
+            .option("kafka.bootstrap.servers", "broker:9092") \
+            .option("startingOffsets", "earliest") \
+            .option("failOnDataLoss", "false") \
+            .option("subscribe", TOPICS_CONFIG["binanceBookTicker"]["topic"]) \
+            .load()
 
-            logging.info(f"Conexión de Kafka al topic '{topic}' creada con éxito")
-            return read_stream
-        else:
-            logging.error(f"El topic '{topic}' no está configurado en TOPICS_CONFIG")
-            return None
+        logging.info(f"Conexión de Kafka creada con éxito")
+        return read_stream
     except Exception as error:
         logging.error(f"Hubo un error al conectarse a kafka: {error}")
         return None
@@ -51,7 +48,7 @@ if __name__ == "__main__":
             parsed_df = process_streaming(
                 read_stream_binance, binance_json_schema
             )
-
+            print(parsed_df.printSchema())
             query = (create_file_write_stream(
                 parsed_df,
                 "/opt/bitnami/data_pipeline/raw_data",
