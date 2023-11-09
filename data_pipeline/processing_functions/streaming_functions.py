@@ -10,6 +10,7 @@ from pyspark.sql.functions import from_json
 def process_and_write_to_location(output_location: str, file_format: str):
     def foreach_batch_function(df: DataFrame, batch_id: int):
         try:
+            df.printSchema()
             df.write.format(file_format).mode("append").save(output_location)
             logging.info("Escritura completada con exito")
         except Exception as error:
