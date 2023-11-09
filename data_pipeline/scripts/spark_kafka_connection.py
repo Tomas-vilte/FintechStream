@@ -76,9 +76,8 @@ if __name__ == "__main__":
                 parsed_df,
                 config["output_location"],
                 config["checkpoint_location"],
-                "100 seconds",
-                config["schema"],
-                "csv"
+                "10 seconds",
+                "json"
             )
             query_streams[topic] = query_stream
 
