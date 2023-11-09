@@ -4,16 +4,12 @@ from pyspark.errors import AnalysisException, StreamingQueryException
 from pyspark.sql.streaming import StreamingQuery
 from pyspark.sql.types import StructType
 from pyspark.sql.dataframe import DataFrame
-from pyspark.sql.functions import from_json, col, to_json
+from pyspark.sql.functions import from_json
 
 
-def process_and_write_to_location(output_location: str, file_format: str, json_schema):
+def process_and_write_to_location(output_location: str, file_format: str):
     def foreach_batch_function(df: DataFrame, batch_id: int):
         try:
-            df = df.select("data.*")
-
-            df.printSchema()
-            df.show()
             df.write.format(file_format).mode("append").save(output_location)
             logging.info("Escritura completada con exito")
         except Exception as error:
@@ -47,7 +43,7 @@ def process_streaming(stream: DataFrame, stream_schema: StructType) -> Optional[
 
 
 def create_file_write_stream(stream: DataFrame, storage_path: str, checkpoint_path: str,
-                             trigger_interval: str, schema: StructType, file_format: str = "parquet") -> Optional[StreamingQuery]:
+                             trigger_interval: str, file_format: str = "parquet") -> Optional[StreamingQuery]:
     """
        Configura la escritura en streaming.
 
@@ -66,7 +62,7 @@ def create_file_write_stream(stream: DataFrame, storage_path: str, checkpoint_pa
             .option("checkpointLocation", checkpoint_path) \
             .trigger(processingTime=trigger_interval) \
             .outputMode("append") \
-            .foreachBatch(process_and_write_to_location(storage_path, file_format, schema)) \
+            .foreachBatch(process_and_write_to_location(storage_path, file_format)) \
             .start()
 
         logging.info("Guardado con exito")
