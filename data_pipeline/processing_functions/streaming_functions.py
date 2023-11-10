@@ -31,9 +31,9 @@ def process_streaming(stream: DataFrame, stream_schema: StructType) -> Optional[
            DataFrame: El DataFrame procesado.
     """
     try:
-        parsed_df = stream.selectExpr("CAST(value AS STRING)") \
-            .select(from_json("value", stream_schema).alias("data")) \
-            .select("data.*")
+        parsed_df = (stream.selectExpr("CAST(value AS STRING)")
+                     .select(from_json("value", stream_schema).alias("data"))
+                     .select("data.*"))
         logging.info("Procesamiento completado con exito")
         return parsed_df
     except AnalysisException as error:
