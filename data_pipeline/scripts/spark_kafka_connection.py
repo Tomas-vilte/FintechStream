@@ -76,18 +76,18 @@ if __name__ == "__main__":
                 parsed_df,
                 config["output_location"],
                 config["checkpoint_location"],
-                "10 seconds",
+                "100 seconds",
                 "json"
             )
             query_streams[topic] = query_stream
 
             try:
                 for query in query_streams.values():
-                    query.awaitTermination(timeout=30)
+                    query.awaitTermination(timeout=60)
             except KeyboardInterrupt as error:
                 for query in query_streams.values():
                     query.stop()
             except Exception as error:
                 logging.error(f"Error en la ejecuccion: {error}")
-        else:
-            logging.error("No se pudo crear la conexión de Spark")
+    else:
+        logging.error("No se pudo crear la conexión de Spark")
