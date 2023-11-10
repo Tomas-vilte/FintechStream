@@ -4,14 +4,18 @@ from pyspark.errors import AnalysisException, StreamingQueryException
 from pyspark.sql.streaming import StreamingQuery
 from pyspark.sql.types import StructType
 from pyspark.sql.dataframe import DataFrame
-from pyspark.sql.functions import from_json
+from pyspark.sql.functions import from_json, col
 
 
 def process_and_write_to_location(output_location: str, file_format: str):
     def foreach_batch_function(df: DataFrame, batch_id: int):
         try:
-            df.printSchema()
-            df.write.format(file_format).mode("append").save(output_location)
+            df = df.select(
+                col("stream"),
+                col("data.*")
+            )
+            df.show()
+            df.coalesce(1).write.format(file_format).mode("append").option("header", "true").save(output_location)
             logging.info("Escritura completada con exito")
         except Exception as error:
             logging.error(f"Error en la escritura de datos: {error}")
