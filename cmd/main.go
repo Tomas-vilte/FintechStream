@@ -14,6 +14,14 @@ func main() {
 				Symbol:     "btcusdt",
 				Channel:    "bookTicker",
 				KafkaTopic: "binanceBookTicker",
+				KeyMapping: config.KeyMapping{
+					"u": "updateId",
+					"s": "symbol",
+					"b": "bestBidPrice",
+					"B": "bestBidQuantity",
+					"a": "bestAskPrice",
+					"A": "bestAskQuantity",
+				},
 			},
 			{
 				Symbol:     "btcusdt",

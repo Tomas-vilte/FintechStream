@@ -16,11 +16,15 @@ func TransformData(data []byte, keyMapping config.KeyMapping) ([]byte, error) {
 		return nil, err
 	}
 
-	// Aplicar transformacion de keys especificas del channel
-	for oldKey, newKey := range keyMapping {
-		if val, ok := jsonData[oldKey]; ok {
-			jsonData[newKey] = val
-			delete(jsonData, oldKey)
+	// Verificar si la clave data esta en el json
+	if dataObj, ok := jsonData["data"].(map[string]interface{}); ok {
+
+		// Aplicar la transformacion de la clave al objeto data
+		for oldKey, newKey := range keyMapping {
+			if val, ok := dataObj[oldKey]; ok {
+				dataObj[newKey] = val
+				delete(dataObj, oldKey)
+			}
 		}
 	}
 
