@@ -26,7 +26,7 @@ func RunApplication(appConfig config.RealTimeConfig) error {
 		defer channelWS.Close()
 
 		// Suscribirse y Publicar en kafka
-		realtime.SubscribeAndPublish(channelWS, kafkaConn, channelConfig.KafkaTopic)
+		realtime.SubscribeAndPublish(channelWS, kafkaConn, channelConfig.KafkaTopic, channelConfig.KeyMapping)
 	}
 	time.Sleep(1 * time.Minute)
 

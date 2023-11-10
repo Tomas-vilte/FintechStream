@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Tomas-vilte/FinanceStream/internal/config"
 	"github.com/Tomas-vilte/FinanceStream/internal/kafka"
+	"github.com/Tomas-vilte/FinanceStream/internal/utils"
 	"github.com/gorilla/websocket"
 	"log"
 )
@@ -12,10 +13,17 @@ type BinanceWebSocket struct {
 	Connection *websocket.Conn
 }
 
-func SubscribeAndPublish(ws *BinanceWebSocket, kafkaConn *kafka.Producer, kafkaTopic string) {
+func SubscribeAndPublish(ws *BinanceWebSocket, kafkaConn *kafka.Producer, kafkaTopic string, keysMapping config.KeyMapping) {
 	go ws.SubscribeToChannel(func(data []byte) {
-		fmt.Printf("Recibiendo data de Binance: %v\n", string(data))
-		err := kafkaConn.PublishData(kafkaTopic, data)
+
+		transformedData, err := utils.TransformData(data, keysMapping)
+		if err != nil {
+			log.Printf("Hubo un error en transformar los datos: %s", err)
+			return
+		}
+
+		fmt.Printf("Recibiendo data de Binance: %v\n", string(transformedData))
+		err = kafkaConn.PublishData(kafkaTopic, transformedData)
 		if err != nil {
 			log.Fatalf("Error al enviar datos a Kafka para %s: %v\n", kafkaTopic, err)
 		}
