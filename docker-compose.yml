@@ -1,6 +1,13 @@
 version: '3'
 
 services:
+  scylla:
+    image: scylladb/scylla:latest
+    networks:
+      - fintechstream_default
+    volumes:
+      - ./data/scylla:/var/lib/scylla
+    command: "--smp 1 --memory 256M --experimental 1"
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.2
     hostname: zookeeper
