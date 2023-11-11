@@ -8,8 +8,8 @@ binance_json_ticker_schema = StructType([
         StructField("symbol", StringType(), True),
         StructField("priceChange", StringType(), True),
         StructField("priceChangePercent", StringType(), True),
-        StructField("weightedAveragePrice", StringType(), True),
-        StructField("firstTrade", StringType(), True),
+        StructField("weightedAvgPrice", StringType(), True),
+        StructField("firstTradePrice", StringType(), True),
         StructField("lastPrice", StringType(), True),
         StructField("lastQuantity", StringType(), True),
         StructField("bestBidPrice", StringType(), True),
@@ -19,13 +19,13 @@ binance_json_ticker_schema = StructType([
         StructField("openPrice", StringType(), True),
         StructField("highPrice", StringType(), True),
         StructField("lowPrice", StringType(), True),
-        StructField("totalTraded", StringType(), True),
-        StructField("totalTradedQuote", StringType(), True),
-        StructField("statisticOpenTime", LongType(), True),
-        StructField("statisticCloseTime", LongType(), True),
+        StructField("totalTradedBaseAssetVolume", StringType(), True),
+        StructField("totalTradedQuoteAssetVolume", StringType(), True),
+        StructField("statisticsOpenTime", LongType(), True),
+        StructField("statisticsCloseTime", LongType(), True),
         StructField("firstTradeId", LongType(), True),
         StructField("lastTradeId", LongType(), True),
-        StructField("totalTrades", LongType(), True)
+        StructField("totalNumberOfTrades", LongType(), True)
 
     ]))
 ])

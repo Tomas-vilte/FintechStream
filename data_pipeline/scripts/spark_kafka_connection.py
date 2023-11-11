@@ -2,7 +2,7 @@ import logging
 from pyspark.sql import SparkSession, DataFrame
 from typing import Optional
 from data_pipeline.config.topic_config import TOPICS_CONFIG
-from data_pipeline.processing_functions.streaming_functions import process_streaming, create_file_write_stream
+from data_pipeline.processing_functions.streaming_functions import process_streaming, write_data_in_scyllaDB
 from pyspark.errors import AnalysisException, StreamingQueryException
 
 
@@ -65,29 +65,34 @@ def connect_to_kafka(spark: SparkSession, topics: str) -> Optional[DataFrame]:
 
 if __name__ == "__main__":
     spark_conn = create_spark_session("streamingBinance")
-
     if spark_conn is not None:
         query_streams = {}
 
         for topic, config in TOPICS_CONFIG.items():
             read_stream = connect_to_kafka(spark_conn, topic)
             parsed_df = process_streaming(read_stream, config["schema"])
-            query_stream = create_file_write_stream(
-                parsed_df,
-                config["output_location"],
-                config["checkpoint_location"],
-                "100 seconds",
-                "json"
-            )
+
+            query_stream = parsed_df.writeStream.foreachBatch(
+                write_data_in_scyllaDB(
+                    parsed_df,
+                    "binance_stream",
+                    config["table"],
+                    {
+                        "spark.cassandra.connection.host": config["host_scyllaDB"],
+                        "spark.cassandra.connection.port": config["port_scyllaDB"],
+                    }
+                )
+            ).start()
+
             query_streams[topic] = query_stream
 
-            try:
-                for query in query_streams.values():
-                    query.awaitTermination(timeout=60)
-            except KeyboardInterrupt as error:
-                for query in query_streams.values():
-                    query.stop()
-            except Exception as error:
-                logging.error(f"Error en la ejecuccion: {error}")
+        try:
+            for topic, query_stream in query_streams.items():
+                query_stream.awaitTermination(timeout=60)
+        except KeyboardInterrupt:
+            for query_stream in query_streams.values():
+                query_stream.stop()
+        except Exception as error:
+            logging.error(f"Error en la ejecución: {error}")
     else:
         logging.error("No se pudo crear la conexión de Spark")
