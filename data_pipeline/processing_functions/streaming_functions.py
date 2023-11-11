@@ -4,7 +4,25 @@ from pyspark.errors import AnalysisException, StreamingQueryException
 from pyspark.sql.streaming import StreamingQuery
 from pyspark.sql.types import StructType
 from pyspark.sql.dataframe import DataFrame
-from pyspark.sql.functions import from_json, col
+from pyspark.sql.functions import from_json, col, monotonically_increasing_id
+
+
+def write_data_in_scyllaDB(df: DataFrame, keyspace: str, table: str, scylla_options: dict):
+    def write_batch(batch_df: DataFrame, batch_id: int):
+        try:
+            batch_df = batch_df.select(
+                col("stream"),
+                col("data.*")
+            ).withColumn("id", monotonically_increasing_id())
+            batch_df.printSchema()
+            batch_df.write.format("org.apache.spark.sql.cassandra") \
+                .options(keyspace=keyspace, table=table, **scylla_options) \
+                .mode("append").save()
+            logging.info("Se escribieron los datos en scyllaDB con exito")
+        except Exception as error:
+            logging.error(f"Hubo un error en escribir en scyllaDB: {error}")
+
+    return write_batch
 
 
 def process_and_write_to_location(output_location: str, file_format: str):
