@@ -1,8 +1,8 @@
 from pyspark.sql import DataFrame
-from typing import Dict
 
 
-def rename_columns(data: DataFrame, column_mapping: Dict[str, str]) -> DataFrame:
-    for old_name, new_name in column_mapping.items():
-        data = data.withColumnRenamed(old_name, new_name)
-    return data
+def rename_columns(df: DataFrame, column_mapping: dict) -> DataFrame:
+    for topic, columns in column_mapping.items():
+        for current_name, new_name in columns.items():
+            df = df.withColumnRenamed(current_name, new_name)
+    return df

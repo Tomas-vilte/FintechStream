@@ -1,6 +1,6 @@
 column_mapping: dict = {
     "binanceTicker": {
-        "eventTyme": "event_type",
+        "eventType": "event_type",
         "eventTime": "event_time",
         "priceChange": "price_change",
         "priceChangePercent": "price_change_percent",

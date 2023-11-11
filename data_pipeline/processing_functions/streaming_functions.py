@@ -1,19 +1,24 @@
 import logging
+import uuid
 from typing import Optional
 from pyspark.errors import AnalysisException, StreamingQueryException
 from pyspark.sql.streaming import StreamingQuery
 from pyspark.sql.types import StructType
 from pyspark.sql.dataframe import DataFrame
-from pyspark.sql.functions import from_json, col, monotonically_increasing_id
+from pyspark.sql.functions import from_json, col, lit
+from data_pipeline.utils.update_names import rename_columns
+from data_pipeline.config.columns_name import column_mapping
 
 
 def write_data_in_scyllaDB(df: DataFrame, keyspace: str, table: str, scylla_options: dict):
     def write_batch(batch_df: DataFrame, batch_id: int):
+
         try:
             batch_df = batch_df.select(
                 col("stream"),
                 col("data.*")
-            ).withColumn("id", monotonically_increasing_id())
+            ).withColumn("id", lit(str(uuid.uuid4())))
+            batch_df = rename_columns(batch_df, column_mapping)
             batch_df.printSchema()
             batch_df.write.format("org.apache.spark.sql.cassandra") \
                 .options(keyspace=keyspace, table=table, **scylla_options) \
