@@ -1,6 +1,13 @@
 version: '3'
 
 services:
+  redis:
+    image: redis:latest
+    container_name: superset_cache
+    restart: unless-stopped
+    volumes:
+      - redis:/data
+
   presto:
     image: starburstdata/presto:latest
     container_name: presto
@@ -30,6 +37,7 @@ services:
     container_name: superset
     volumes:
       - ./config/superset_config.py:/app/superset_config.py
+      - ./docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     env_file: ./docker/.env-non-dev
     ports:
       - "8088:8088"
