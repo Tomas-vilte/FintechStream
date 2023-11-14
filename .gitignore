@@ -2,3 +2,4 @@
 /venv/
 data/
 db_home/
+redis/
