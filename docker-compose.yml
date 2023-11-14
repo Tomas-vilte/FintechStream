@@ -1,6 +1,64 @@
 version: '3'
 
 services:
+  redis:
+    image: redis:latest
+    container_name: superset_cache
+    restart: unless-stopped
+    volumes:
+      - redis:/data
+
+  presto:
+    image: starburstdata/presto:latest
+    container_name: presto
+    networks:
+      - fintechstream_default
+    environment:
+      - discovery-server.enabled=true
+      - discovery.uri=http://presto-coordinator:8080
+
+  presto-coordinator:
+    image: starburstdata/presto:latest
+    container_name: presto-coordinator
+    networks:
+      - fintechstream_default
+    environment:
+      - coordinator=true
+      - node-scheduler.include-coordinator=true
+      - http-server.http.port=8080
+      - query.max-memory=1GB
+      - query.max-memory-per-node=512MB
+      - discovery.uri=http://presto-coordinator:8080
+
+  superset:
+    image: apache/superset:latest
+    user: root
+    restart: unless-stopped
+    container_name: superset
+    volumes:
+      - ./config/superset_config.py:/app/superset_config.py
+      - ./docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    env_file: ./docker/.env-non-dev
+    ports:
+      - "8088:8088"
+    networks:
+      - fintechstream_default
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    restart: unless-stopped
+    env_file: ./docker/.env-non-dev
+    volumes:
+      - ./db_home:/var/lib/postgresql/data
+      - ./docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - fintechstream_default
+      
   scylla:
     image: scylladb/scylla:latest
     container_name: scylladb
