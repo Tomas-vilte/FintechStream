@@ -15,3 +15,5 @@ psql -v ON_ERROR_STOP=1 --username "${POSTGRES_USER}" -d "${EXAMPLES_DB}" <<-EOS
 EOSQL
 
 echo "Permisos otorgados en el esquema público."
+
+
