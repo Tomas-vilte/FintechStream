@@ -1,6 +1,55 @@
 version: '3'
 
 services:
+  presto:
+    image: starburstdata/presto:latest
+    container_name: presto
+    networks:
+      - fintechstream_default
+    environment:
+      - discovery-server.enabled=true
+      - discovery.uri=http://presto-coordinator:8080
+
+  presto-coordinator:
+    image: starburstdata/presto:latest
+    container_name: presto-coordinator
+    networks:
+      - fintechstream_default
+    environment:
+      - coordinator=true
+      - node-scheduler.include-coordinator=true
+      - http-server.http.port=8080
+      - query.max-memory=1GB
+      - query.max-memory-per-node=512MB
+      - discovery.uri=http://presto-coordinator:8080
+
+  superset:
+    image: apache/superset:latest
+    container_name: superset
+    volumes:
+      - ./config/superset_config.py:/app/superset_config.py
+    environment:
+      - SUPERSET_DATABASE_URI=postgresql://superset:superset@postgres:5432/superset
+      - SUPERSET_CONFIG_PATH=/app/superset_config.py
+    ports:
+      - "8088:8088"
+    networks:
+      - fintechstream_default
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=superset
+      - POSTGRES_USER=superset
+      - POSTGRES_PASSWORD=superset
+    ports:
+      - "5432:5432"
+    networks:
+      - fintechstream_default
+      
   scylla:
     image: scylladb/scylla:latest
     container_name: scylladb
