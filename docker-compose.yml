@@ -25,12 +25,12 @@ services:
 
   superset:
     image: apache/superset:latest
+    user: root
+    restart: unless-stopped
     container_name: superset
     volumes:
       - ./config/superset_config.py:/app/superset_config.py
-    environment:
-      - SUPERSET_DATABASE_URI=postgresql://superset:superset@postgres:5432/superset
-      - SUPERSET_CONFIG_PATH=/app/superset_config.py
+    env_file: ./docker/.env-non-dev
     ports:
       - "8088:8088"
     networks:
@@ -41,10 +41,11 @@ services:
   postgres:
     image: postgres:latest
     container_name: postgres
-    environment:
-      - POSTGRES_DB=superset
-      - POSTGRES_USER=superset
-      - POSTGRES_PASSWORD=superset
+    restart: unless-stopped
+    env_file: ./docker/.env-non-dev
+    volumes:
+      - ./db_home:/var/lib/postgresql/data
+      - ./docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
     networks:
