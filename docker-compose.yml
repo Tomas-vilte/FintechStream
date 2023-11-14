@@ -16,7 +16,7 @@ services:
     ports:
       - "8085:8080"
     volumes:
-      - ./config:/opt/presto-server-0.284/etc/
+      - ./presto_properties:/opt/presto-server-0.284/etc/
 
     networks:
       - fintechstream_default
