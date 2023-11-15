@@ -6,29 +6,21 @@ services:
     container_name: superset_cache
     restart: unless-stopped
     volumes:
-      - redis:/data
+      - ./redis:/data
 
   presto:
-    image: starburstdata/presto:latest
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile_presto
     container_name: presto
+    ports:
+      - "8085:8080"
+    volumes:
+      - ./presto_properties:/opt/presto-server-0.284/etc/
+      #- ./presto_properties/catalog/:/opt/presto-server-0.284/etc/catalog/
     networks:
       - fintechstream_default
-    environment:
-      - discovery-server.enabled=true
-      - discovery.uri=http://presto-coordinator:8080
-
-  presto-coordinator:
-    image: starburstdata/presto:latest
-    container_name: presto-coordinator
-    networks:
-      - fintechstream_default
-    environment:
-      - coordinator=true
-      - node-scheduler.include-coordinator=true
-      - http-server.http.port=8080
-      - query.max-memory=1GB
-      - query.max-memory-per-node=512MB
-      - discovery.uri=http://presto-coordinator:8080
+    
 
   superset:
     image: apache/superset:latest
