@@ -17,7 +17,7 @@ services:
       - "8085:8080"
     volumes:
       - ./presto_properties:/opt/presto-server-0.284/etc/
-      - ./presto_properties/catalog/:/opt/presto-server-0.284/etc/catalog/
+      #- ./presto_properties/catalog/:/opt/presto-server-0.284/etc/catalog/
     networks:
       - fintechstream_default
     
