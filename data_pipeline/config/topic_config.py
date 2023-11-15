@@ -7,7 +7,7 @@ TOPICS_CONFIG: Dict[str, dict] = {
         "schema": binance_json_schema,
         "output_location": "/opt/bitnami/data_pipeline/raw_data/book_ticker",
         "checkpoint_location": "/opt/bitnami/data_pipeline/checkpoint/book_ticker",
-        "host_scyllaDB": "172.19.0.6",
+        "host_scyllaDB": "scylladb", # Nombre del contenedor de scyllaDB
         "port_scyllaDB": "9042",
         "table": "binance_book_ticker_data"
     },
@@ -15,7 +15,7 @@ TOPICS_CONFIG: Dict[str, dict] = {
         "schema": binance_json_ticker_schema,
         "output_location": "/opt/bitnami/data_pipeline/raw_data/ticker",
         "checkpoint_location": "/opt/bitnami/data_pipeline/checkpoint/ticker",
-        "host_scyllaDB": "172.19.0.6",
+        "host_scyllaDB": "scylladb",
         "port_scyllaDB": "9042",
         "table": "binance_ticker_data",
     },

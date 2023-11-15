@@ -18,7 +18,7 @@ def create_spark_session(app: str) -> Optional[SparkSession]:
         """
     try:
         conn = SparkSession.builder \
-            .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.3") \
+            .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.3,com.datastax.spark:spark-cassandra-connector_2.12:3.0.0") \
             .appName(name=app) \
             .getOrCreate()
 
