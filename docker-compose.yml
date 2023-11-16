@@ -5,6 +5,8 @@ services:
     image: redis:latest
     container_name: superset_cache
     restart: unless-stopped
+    networks:
+      - fintechstream_default
     volumes:
       - ./redis:/data
 
@@ -28,7 +30,7 @@ services:
     container_name: superset
     volumes:
       - ./config/superset_config.py:/app/superset_config.py
-      - ./docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./docker/docker-entrypoint-initdb.d:/app/docker-entrypoint-initdb.d
     env_file: ./docker/.env-non-dev
     ports:
       - "8088:8088"
@@ -59,7 +61,6 @@ services:
       - ./docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
       - ./data/scylla:/var/lib/scylla
     command: ["--smp", "1", "--memory", "256M", "--experimental", "1"]
-
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.2
