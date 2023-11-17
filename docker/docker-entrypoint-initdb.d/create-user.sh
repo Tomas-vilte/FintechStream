@@ -9,11 +9,11 @@ done
 
 # Comando para crear un usuario administrador utilizando variables de entorno
 docker exec -it superset superset fab create-admin \
-  --username "${ADMIN_USERNAME}" \
-  --firstname "${ADMIN_FIRSTNAME}" \
-  --lastname "${ADMIN_LASTNAME}" \
-  --email "${ADMIN_EMAIL}" \
-  --password "${ADMIN_PASSWORD}"
+  --username admin \
+  --firstname Superset \
+  --lastname Admin \
+  --email admin@superset.com \
+  --password admin
 
 # Migrar la base de datos local de Superset a la última versión
 docker exec -it superset superset db upgrade
