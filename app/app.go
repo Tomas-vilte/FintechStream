@@ -1,11 +1,12 @@
 package app
 
 import (
+	"log"
+	"time"
+
 	"github.com/Tomas-vilte/FinanceStream/internal/config"
 	"github.com/Tomas-vilte/FinanceStream/internal/kafka"
 	"github.com/Tomas-vilte/FinanceStream/internal/realtime"
-	"log"
-	"time"
 )
 
 func RunApplication(appConfig config.RealTimeConfig) error {
