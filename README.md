@@ -51,3 +51,44 @@ presto://172.19.0.3:8085/scylladb
 ```
 !Acordate de poner la IP que se imprime cuando se ejecuta el script `setup-all.sh`
 
+## Ejecuccion del Recolector de Datos
+1. Despues de la configuracion, movete al directorio `cmd`, donde se encuentra el archivo `main.go`, que comienza a recolectar los datos y enviarlos al topic.
+```bash
+cd cmd
+go run main.go
+```
+
+## Enviar Job al cluster de Spark
+1. Primero accede a http://localhost:8080 en tu navegador.
+2. Copia la IP de Spark Master que se muestra en la interfaz web, es la que dice `URL`.
+3. Luego, entra al contenedor `fintechstream-spark-master-1` y cambia al directorio principal:
+```bash
+docker exec -it fintechstream-spark-master-1 bash
+cd ..
+```
+4. Ejecuta el siguiente comando para enviar el job al cluster de Spark, reemplazando `IP_de_Spark_Master` con la IP que copiaste anteriormente:
+```bash
+spark-submit --master spark://IP_de_Spark_Master:7077 --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.3,com.datastax.spark:spark-cassandra-connector_2.12:3.0.0 data_pipeline/scripts/spark_kafka_connection.py
+```
+
+## Resultado del job de Spark
+![resultado](/images/job_result.png)
+
+## Tabla en ScyllaDB
+![tabla](/images/table_scylladb.png)
+
+## Análisis Realizado
+
+### Análisis 1: Datos de Libro de Órdenes (Binance Book Ticker Data)
+- **Descripción:** Este análisis examina la evolución de las máximas ofertas de compra (best_bid_price) y de venta (best_ask_price) para diferentes símbolos, como BTCUSDT y ETHUSDT, a lo largo del tiempo, según los datos del libro de órdenes de Binance.
+
+- **Visualización:** El gráfico "Evolución de Máximas Ofertas de Compra y Venta por Símbolo" ilustra cómo han variado las ofertas de compra y venta para los símbolos seleccionados en cada actualización de datos.
+
+    ![grafico1](/images/Evolución%20de%20Máximas%20Ofertas%20de%20Compra%20y%20Venta%20por%20Símbolo.png)
+
+### Análisis 2: Datos de Ticker (Binance Ticker Data)
+- **Descripción:** El análisis de los "Datos de Transacciones" (Binance Ticker Data) se centra en el número total de operaciones (total_number_of_trades) para los pares de criptomonedas BTCUSDT y ETHUSDT a lo largo del tiempo.
+
+- **Visualización:** Este gráfico de barras representa el número total de operaciones (total_number_of_trades) para los pares de criptomonedas BTCUSDT y ETHUSDT a lo largo del tiempo, según los datos de transacciones de Binance.
+
+    ![graficos2](/images/número%20total%20de%20operaciones.png)

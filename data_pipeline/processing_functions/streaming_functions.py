@@ -19,7 +19,7 @@ def write_data_in_scyllaDB(df: DataFrame, keyspace: str, table: str, scylla_opti
                 col("data.*")
             ).withColumn("id", lit(str(uuid.uuid4())))
             batch_df = rename_columns(batch_df, column_mapping)
-            batch_df.printSchema()
+            batch_df.show()
             batch_df.write.format("org.apache.spark.sql.cassandra") \
                 .options(keyspace=keyspace, table=table, **scylla_options) \
                 .mode("append").save()
