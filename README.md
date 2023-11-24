@@ -1,30 +1,48 @@
 # FintechStream
 
-## Arquitectura
-
 ## Descripcion
 
 Este proyecto tiene como objetivo recolectar, procesar y analizar datos financieros en tiempo real utilizando la API de Binance a través de WebSockets. La arquitectura del proyecto se basa en la recolección de datos en Golang, transmisión a través de Apache Kafka, procesamiento en tiempo real con Apache Spark Streaming, almacenamiento en ScyllaDB, y visualización mediante Apache Superset. Todos los servicios se gestionan y ejecutan en contenedores Docker para facilitar la implementación y escalabilidad.
 
-# Componentes Principales
+# Arquitectura
 
-1. Recolector de Datos (Golang)
-Utilice Go para consumir datos de la API de Binance a traves de WebSockets. Este componente es responsable de la recoleccion de datos en tiempo real desde diferentes topics.
+![diagrama](/images/diagram.png)
 
-2. Transmision de datos (Apache Kafka)
-Apache Kafka actua como plataforma de transmision de datos, donde cada topic corresponde a un channel especifico de WebSocket. Los datos recolectados se envian a sus respectivos topics en kafka, permitiendo una separacion y gestion eficientes de los flujos de datos.
+1. **Data Source (Binance):** La fuente de datos proviene de Binance, y se accede mediante WebSockets, o atraves de Endpoints que proporciona.
 
-3. Procesamiento en tiempo real (Apache Spark Streaming)
+2. **Recolector de Datos (Golang):** Utilice Go para consumir datos de la API de Binance a traves de WebSockets. Este componente es responsable de la recoleccion de datos en tiempo real desde diferentes topics.
+
+3. **Transmision de datos (Apache Kafka):** Actúa como un broker de mensajes para la transmisión de datos en tiempo real entre los diferentes componentes del sistema. Los datos recolectados se envían a Kafka y se consumen según sea necesario.
+
+4. **ZooKeeper:** Se utiliza como coordinador y gestor de configuraciones para mantener la sincronización y el estado entre los nodos en el clúster de Kafka.
+
+5. **Procesamiento en tiempo real (Apache Spark Streaming):**
 Spark se encarga de consumir datos desde los topics de Kafka y realizar analisis en tiempo real. Pueden aplicarse transformaciones, agregaciones y logica de procesamiento segun los requerimientos de cada topic.
 
-4. Almacenamiento de Datos (ScyllaDB)
-ScyllaDB se utiliza como base de datos NoSQL para almacenar los datos procesados y permitir consultas eficientes en tiempo real.
+6. **Spark Streaming Cluster:**
 
-5. Visualizacion de Datos (Apache Superset)
-Utilice Apache Superset para visualizar los datos almacenados en ScyllaDB, proporcionando paneles interactivos y dashboards para el analisis y la toma de decisiones.
+    - **Driver Program (SparkContext):** Inicia la aplicación Spark y coordina la ejecución en el clúster.
 
-6. Orquestacion de Contenedores (Docker)
-Todos los servicios se gestionan y ejecutan en contenedores Docker, lo que simplifica la implementacion, la gestion de dependencias y la escalabilidad de la infraestructura.
+    - **Cluster Manager (Master):** Gestiona los recursos en el clúster Spark y distribuye tareas a los nodos de trabajo.
+
+    - **Executor (Worker):** Nodos de trabajo que ejecutan tareas Spark en paralelo.
+
+7. **Almacenamiento de Datos (ScyllaDB):** ScyllaDB actúa como la base de datos de almacenamiento persistente para los datos procesados. Proporciona escalabilidad y rendimiento para manejar grandes volúmenes de datos relacionados con el mercado financiero.
+
+8. Motor de Consulta con Presto:
+    - **Presto Coordinator:** Coordina y gestiona las consultas en el cluster.
+    - **Presto Worker:** Ejecuta tareas de consulta en el cluster.
+    - **Results Query:** Almacena temporalmente los resultados de las consultas.
+    - **Connector ScyllaDB:** Permite a Presto conectarse y consultar ScyllaDB.
+
+9. **Visualizacion de Datos (Apache Superset):** Utilice Apache Superset para visualizar los datos almacenados en ScyllaDB, proporcionando paneles interactivos y dashboards para el analisis y la toma de decisiones.
+
+    - **Client:** Interfaz de usuario para construir dashboards y visualizaciones.
+    - **Redis:** Sistema de almacenamiento en caché para mejorar el rendimiento.
+    - **Metadata DB (PostgreSQL):** Base de datos para almacenar metadatos de dashboards y gráficos.
+    - **Connector Presto:** Permite a Superset conectarse y ejecutar consultas en Presto.
+
+10. **Orquestacion de Contenedores (Docker):** Todos los servicios se gestionan y ejecutan en contenedores Docker, lo que simplifica la implementacion, la gestion de dependencias y la escalabilidad de la infraestructura.
 
 ## Configuracion y Ejecuccion
 
