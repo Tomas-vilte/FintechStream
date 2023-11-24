@@ -37,6 +37,11 @@ Spark se encarga de consumir datos desde los topics de Kafka y realizar analisis
 
 9. **Visualizacion de Datos (Apache Superset):** Utilice Apache Superset para visualizar los datos almacenados en ScyllaDB, proporcionando paneles interactivos y dashboards para el analisis y la toma de decisiones.
 
+    - **Client:** Interfaz de usuario para construir dashboards y visualizaciones.
+    - **Redis:** Sistema de almacenamiento en caché para mejorar el rendimiento.
+    - **Metadata DB (PostgreSQL):** Base de datos para almacenar metadatos de dashboards y gráficos.
+    - **Connector Presto:** Permite a Superset conectarse y ejecutar consultas en Presto.
+
 10. **Orquestacion de Contenedores (Docker):** Todos los servicios se gestionan y ejecutan en contenedores Docker, lo que simplifica la implementacion, la gestion de dependencias y la escalabilidad de la infraestructura.
 
 ## Configuracion y Ejecuccion
